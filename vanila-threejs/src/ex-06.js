@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import { WEBGL } from './webgl'
+// 재질(Texture) 사용 스터디
 
 if (WEBGL.isWebGLAvailable()) {
 
@@ -9,7 +10,7 @@ if (WEBGL.isWebGLAvailable()) {
 
     // 카메라
     const camera = new THREE.PerspectiveCamera(75, window.innerWidth /window.innerHeight, 0.1, 1000);
-    camera.position.z = 5;
+    camera.position.z = 3;
 
     // 렌더러
     const renderer = new THREE.WebGLRenderer({
@@ -24,12 +25,18 @@ if (WEBGL.isWebGLAvailable()) {
     pointLight.position.set(0,2,12);
     scene.add(pointLight)
 
+    // 텍스쳐 추가
+    const textureLoader = new THREE.TextureLoader();
+    const textureBaseColor = textureLoader.load('../static/img/stone_basecolor.jpg');
+    const textureNormalMap = textureLoader.load('../static/img/stone_normal.jpg');
+    const textureHeightMap = textureLoader.load('../static/img/stone_height.png');
+    const textureRoughnessMap = textureLoader.load('../static/img/stone_roughness.jpg');
+
     // 매쉬
-    const geometry = new THREE.TorusGeometry(0.3, 0.15, 16, 40);
-    const material01 = new THREE.MeshPhysicalMaterial({
-        color: 0xFF7F00,
-        clearcoat: 1,
-        clearcoatRoughness: 0.1
+    const geometry = new THREE.SphereGeometry(0.3, 32,16);
+    const material01 = new THREE.MeshStandardMaterial({
+        color: 0xEEEEEE,
+        map: textureBaseColor,
     })
     const obj01 = new THREE.Mesh(geometry, material01);
     obj01.position.x = -2;
@@ -37,39 +44,36 @@ if (WEBGL.isWebGLAvailable()) {
 
 
     const material02 = new THREE.MeshStandardMaterial({
-        color: 0xFF7F00,
-        metalness: 0.6, // 금속 질감 (어두워짐)
-        roughness: 0.4, // 거친 질감 (금속같은 느낌)
-        // transparent: true,
-        wireframe: true, // 와이어프레임 선 모양 표시
+        color: 0xEEEEEE,
+        normalMap: textureNormalMap
     })
-    material02.opacity = 0.7 // 바깥에서도 지정 가능
     const obj02 = new THREE.Mesh(geometry,material02);
     obj02.position.x = -1;
     scene.add(obj02);
 
-    const material03 = new THREE.MeshDepthMaterial({
-        color: 0xFF7F00
+    const material03 = new THREE.MeshStandardMaterial({
+        color: 0xEEEEEE,
+        map: textureBaseColor,
+        normalMap: textureNormalMap,
+        displacementMap: textureHeightMap,
+        displacementScale: 0.1
     })
     const obj03 = new THREE.Mesh(geometry,material03);
     obj03.position.x = 0;
     scene.add(obj03);
 
-    const material04 = new THREE.MeshLambertMaterial({
-        color: 0xFF7F00,
+    const material04 = new THREE.MeshStandardMaterial({
+        color: 0xEEEEEE,
+        map: textureBaseColor,
+        normalMap: textureNormalMap,
+        displacementMap: textureHeightMap,
+        displacementScale: 0.1,
+        roughnessMap: textureRoughnessMap,
+        roughness: 0.4
     })
     const obj04 = new THREE.Mesh(geometry,material04);
     obj04.position.x = 1;
     scene.add(obj04);
-
-    const material05 = new THREE.MeshPhongMaterial({
-        color: 0xFF7F00,
-        shininess: 60, // 광택
-        specular: 0x004fff
-    })
-    const obj05 = new THREE.Mesh(geometry,material05);
-    obj05.position.x = 2;
-    scene.add(obj05);
 
     function render(time) {
         time *= 0.0005;  // convert time to seconds
@@ -82,8 +86,6 @@ if (WEBGL.isWebGLAvailable()) {
         obj03.rotation.y = time; // y축 회전
         obj04.rotation.x = time; // x축 회전
         obj04.rotation.y = time; // y축 회전
-        obj05.rotation.x = time; // x축 회전
-        obj05.rotation.y = time; // y축 회전
 
         renderer.render(scene, camera);
 
